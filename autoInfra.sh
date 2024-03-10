@@ -90,6 +90,7 @@ hostup() {
     fi
 }
 
+########### continue after detect an open port
 port_service_scan() {
     text="xxxxxxxxxxxxxxxxxxxx Ports & Service Scan xxxxxxxxxxxxxxxxxxxx"
     out1
@@ -100,7 +101,7 @@ port_service_scan() {
     echo -e "${MAGENTA}Nmap done, remember that these results are just for common ports.${NC}"
     echo -e "${MAGENTA}For further information, check out results.txt${NC}"
 
-    if grep -qi "21/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "21/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}FTP port is open!${NC}"
         contenum
         read op
@@ -117,7 +118,7 @@ port_service_scan() {
         echo -e "${RED}FTP port is not open.${NC}"
     fi
 
-    if grep -qi "22/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "22/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SSH port is open!${NC}"
         contenum
         read op
@@ -134,7 +135,7 @@ port_service_scan() {
         echo -e "${RED}SSH port is not open.${NC}"
     fi
 
-    if grep -qi "25/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "25/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SMTP port is open!${NC}"
         contenum
         read op
@@ -151,7 +152,7 @@ port_service_scan() {
         echo -e "${RED}SMTP port 25 is not open.${NC}"
     fi
 
-    if grep -qi "53/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "53/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}DNS port is open!${NC}"
         contenum
         read op
@@ -168,7 +169,7 @@ port_service_scan() {
         echo -e "${RED}DNS port is not open.${NC}"
     fi
 
-    if grep -qi "80/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "80/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}HTTP port is open!${NC}"
         contenum
         read op
@@ -185,7 +186,7 @@ port_service_scan() {
         echo -e "${RED}HTTP port is not open.${NC}"
     fi
 
-    if grep -qi "110/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "110/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
         contenum
         read op
@@ -202,7 +203,7 @@ port_service_scan() {
         echo -e "${RED}IMAP/POP3 port 110 is not open.${NC}"
     fi
 
-    if grep -qi "137/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "137/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SMB port is open! - NetBios${NC}"
         contenum
         read op
@@ -219,7 +220,7 @@ port_service_scan() {
         echo -e "${RED}SMB port 137 is not open.${NC}"
     fi
 
-    if grep -qi "138/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "138/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SMB port is open! - NetBios${NC}"
         contenum
         read op
@@ -236,7 +237,7 @@ port_service_scan() {
         echo -e "${RED}SMB port 138 is not open.${NC}"
     fi
 
-    if grep -qi "139/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "139/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SMB port is open! - NetBios${NC}"
         contenum
         read op
@@ -253,7 +254,7 @@ port_service_scan() {
         echo -e "${RED}SMB port 139 is not open.${NC}"
     fi
 
-    if grep -qi "143/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "143/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
         contenum
         read op
@@ -271,7 +272,7 @@ port_service_scan() {
     fi
 
 
-    if grep -qi "445/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "445/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SMB port is open! - CIFS${NC}"
         contenum
         read op
@@ -288,7 +289,7 @@ port_service_scan() {
         echo -e "${RED}SMB port is not open.${NC}"
     fi
 
-    if grep -qi "587/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "587/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SMTP port is open!${NC}"
         contenum
         read op
@@ -305,7 +306,7 @@ port_service_scan() {
         echo -e "${RED}SMTP port 587 is not open.${NC}"
     fi
 
-    if grep -qi "993/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "993/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
         contenum
         read op
@@ -322,7 +323,7 @@ port_service_scan() {
         echo -e "${RED}IMAP/POP3 port 993 SSL/TLS is not open.${NC}"
     fi
 
-    if grep -qi "995/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "995/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
         contenum
         read op
@@ -339,7 +340,7 @@ port_service_scan() {
         echo -e "${RED}IMAP/POP3 port 995 SSL/TLS is not open.${NC}"
     fi
 
-    if grep -qi "2049/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "2049/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}NFS port is open!${NC}"
         contenum
         read op
@@ -357,7 +358,7 @@ port_service_scan() {
     fi
 
     
-    if grep -qi "3306/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "3306/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}MySQL port is open!${NC}"
         contenum
         read op
@@ -373,7 +374,7 @@ port_service_scan() {
     else
         echo -e "${RED}MySQL port is not open.${NC}"
     fi
-    if grep -qi "1433/tcp    open" <<< "$nmap_res"; then
+    if grep -qi "1433/tcp open" <<< "$nmap_res"; then
         echo -e "${GREEN}SSQL port is open!${NC}"
         contenum
         read op
