@@ -77,12 +77,12 @@ hostup() {
         echo "$host_status" >> "$resfile"
     else
         echo -e "${RED}Maybe Windows Blocking ICMP...${NC}"
-        host_status2=$(nmap "$1" -Pn | grep -i "open")
+        host_status2=$(nmap -Pn -PR -n -sn "$1" | grep -i "Host is up")
         if [ -n "$host_status2" ]; then
-            echo -e "${GREEN}Yep, There are open ports for this ${BLUE}Windows host${NC}" # <-----------------------
-            echo "Open ports for this Windows host" >> "$resfile"
+            echo -e "${GREEN}Yep... Host is up${NC}"
+            echo "$host_status2" >> "$resfile"
         else
-            echo -e "${RED}No ports open for this host${NC}"
+            echo -e "${RED}Host seems down${NC}"
             echo "No ports open for this host" >> "$resfile"
             echo -e "${RED}Host seems down...${NC}"
             echo "Host seems down..." >> "$resfile"
@@ -400,13 +400,11 @@ dnsenumfunc() {
     echo -e "${GREEN}DNSenum done, results.txt for more info${NC}"
 }
 
-# Check for root privileges
 if [[ $(id -u) -ne 0 ]]; then
     echo -e "${RED}This script requires root privileges. Please run with sudo.${NC}"
     exit 1
 fi
 
-# Options for the infra script
 if [[ -z "$1" || -z "$2" || -z "$3" || -z "$4" ]]; then
     echo -e "${RED}Usage: ./reconAutomator.sh <IP> <whois wy/wn> <dnsenum dnsy/dnsn> <tcp/udp/both>${NC}"
     exit 1
@@ -427,7 +425,7 @@ else
         echo -e "${MAGENTA}ALL DONE... see the results in the results.txt file${NC}"
         exit 1
     elif [[ "$4" == "udp" ]]; then
-        # udp functions
+        ############# udp functions 
         echo -e "${MAGENTA}ALL DONE... see the results in the results.txt file${NC}"
         exit 1
     else

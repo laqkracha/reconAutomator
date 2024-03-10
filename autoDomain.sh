@@ -95,6 +95,8 @@ whatwebfunc(){
     echo -e "${GREEN}whatweb done, results.txt for more info${NC}"
 }
 
+############ Shodan/Censys functionality
+
 passiverecon(){
     whatwebfunc "$1"
     wafwoof "$1"
@@ -107,7 +109,7 @@ passiverecon(){
 
 activerecon(){
     echo -e "${BLUE}Running ./autoInfra.sh reconnaissance...${NC}"
-    sudo ./reconAutomator.sh 
+    sudo ./autoInfra.sh 
 }
 
 if [[ -z "$1" || -z "$2" || -z "$3" ]]; then

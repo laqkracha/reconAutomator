@@ -70,8 +70,6 @@ ftpf() {
             echo -e "${RED}Invalid option.${NC}"
         fi
     fi
-    
-    #metsplot brute left
     echo -e "${GREEN}FTP enumeration done. Check results.txt for more info.${NC}"
 }
 
@@ -138,8 +136,6 @@ sshf() {
         else
             echo -e "${RED}Invalid option.${NC}"
         fi
-
-        #metsplot brute left
         echo -e "${GREEN}SSH enumeration done. Check results.txt for more info.${NC}"
 }
 
@@ -208,9 +204,6 @@ httpf() {
     else
         echo -e "${WHITE}Skipped...${NC}" | tee -a $resfile
     fi
-
-
-    #metasploit modules left
     echo -e "${GREEN}HTTP enumeration done. Check results.txt for more info.${NC}"
 }
 
@@ -364,8 +357,6 @@ smbf() {
             echo -e "${WHITE}Skipped...${NC}" | tee -a $resfile
         fi
     fi
-
-    #metasploit modules left
     echo -e "${GREEN}SMB enumeration done. Check results.txt for more info.${NC}"
 }
 
@@ -467,8 +458,6 @@ mysqlf() {
             echo -e "${WHITE}Skipped...${NC}" | tee -a $resfile
         fi
     fi
-
-    #metasploit modules left
     echo -e "${GREEN}MySQL enumeration done. Check results.txt for more info.${NC}"
 }
 
@@ -538,14 +527,9 @@ ssqlf() {
             echo -e "${WHITE}Skipped...${NC}" | tee -a $resfile
         fi
     fi
-
-    #metasploit modules left
     echo -e "${GREEN}SSQL enumeration done. Check results.txt for more info.${NC}"
 }
 
-
-
-# Check if required arguments are provided
 if [[ -z "$1" || -z "$2" || -z "$3" ]]; then
     echo -e "${RED}Usage: ./autoEnum.sh <IP> <tcp/udp> <port>${NC}"
     exit 1
