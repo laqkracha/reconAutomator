@@ -31,66 +31,71 @@ echo "
 ║╔╗║╚╝║╚╣╚╝╠╣╠╣║║║║║║║╔╗║
 ╚╝╚╩══╩═╩══╩══╩╝╚╩╝╚╝╚╝╚╝" >> "$resfile"
 
+out1(){
+    padding=$(( (line_length - ${#text}) / 2 ))
+    line=$(printf "%*s%s%*s\n" $padding "" "$text" $padding "")
+    echo "$line"
+}
+
+out2(){
+    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
+    printf "%*s\n" $(((${#line}+$line_length)/2)) "$line" >> "$resfile"
+    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
+}
+
 contenum() {
     echo -e "${CYAN}Do you want me to try the Enumeration? (y/n)"
 }
 
 hostr() {
     text="xxxxxxxxxxxxxxxxxxxx Host xxxxxxxxxxxxxxxxxxxx"
-    padding=$(( (line_length - ${#text}) / 2 ))
-    line=$(printf "%*s%s%*s\n" $padding "" "$text" $padding "")
-    echo "$line"
+    out1
     line="HOST"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
-    printf "%*s\n" $(((${#line}+$line_length)/2)) "$line" >> "$resfile"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
+    out2
     host "$1" | tee -a "$resfile"
     echo -e "${GREEN}host done, results.txt for more info${NC}"
 }
 
 whoisfunc() {
     text="xxxxxxxxxxxxxxxxxxxx Whois xxxxxxxxxxxxxxxxxxxx"
-    padding=$(( (line_length - ${#text}) / 2 ))
-    line=$(printf "%*s%s%*s\n" $padding "" "$text" $padding "")
-    echo "$line"
+    out1
     line="WHOIS"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
-    printf "%*s\n" $(((${#line}+$line_length)/2)) "$line" >> "$resfile"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
+    out2
     whois "$1" >> "$resfile"
     echo -e "${GREEN}whois done, results.txt for more info${NC}"
 }
 
 hostup() {
     text="xxxxxxxxxxxxxxxxxxxx is the host up? xxxxxxxxxxxxxxxxxxxx"
-    padding=$(( (line_length - ${#text}) / 2 ))
-    line=$(printf "%*s%s%*s\n" $padding "" "$text" $padding "")
-    echo "$line"
+    out1
     line="is the host up?"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
-    printf "%*s\n" $(((${#line}+$line_length)/2)) "$line" >> "$resfile"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
+    out2
     host_status=$(nmap -sn "$1" | grep -i "Host is up")
 
     if [ -n "$host_status" ]; then
         echo -e "${GREEN}Yep... Host is up${NC}"
         echo "$host_status" >> "$resfile"
     else
-        echo -e "${RED}Host seems down...${NC}"
-        echo "Host seems down..." >> "$resfile"
+        echo -e "${RED}Maybe Windows Blocking ICMP...${NC}"
+        host_status2=$(nmap "$1" -Pn | grep -i "open")
+        if [ -n "$host_status2" ]; then
+            echo -e "${GREEN}Yep, There are open ports for this ${BLUE}Windows host${NC}" # <-----------------------
+            echo "Open ports for this Windows host" >> "$resfile"
+        else
+            echo -e "${RED}No ports open for this host${NC}"
+            echo "No ports open for this host" >> "$resfile"
+            echo -e "${RED}Host seems down...${NC}"
+            echo "Host seems down..." >> "$resfile"
+        fi
     fi
 }
 
 port_service_scan() {
     text="xxxxxxxxxxxxxxxxxxxx Ports & Service Scan xxxxxxxxxxxxxxxxxxxx"
-    padding=$(( (line_length - ${#text}) / 2 ))
-    line=$(printf "%*s%s%*s\n" $padding "" "$text" $padding "")
-    echo "$line"
+    out1
     line="Ports & Service Scan"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
-    printf "%*s\n" $(((${#line}+$line_length)/2)) "$line" >> "$resfile"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
-    nmap_res=$(sudo nmap "$1" -p- -sV -O | tail -n +4 | head -n -2)
+    out2
+    nmap_res=$(sudo nmap "$1" -sV | tail -n +4 | head -n -2)
     echo "$nmap_res" >> "$resfile"
     echo -e "${MAGENTA}Nmap done, remember that these results are just for common ports.${NC}"
     echo -e "${MAGENTA}For further information, check out results.txt${NC}"
@@ -129,6 +134,40 @@ port_service_scan() {
         echo -e "${RED}SSH port is not open.${NC}"
     fi
 
+    if grep -qi "25/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}SMTP port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 25
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}SMTP port 25 is not open.${NC}"
+    fi
+
+    if grep -qi "53/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}DNS port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 53
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}DNS port is not open.${NC}"
+    fi
+
     if grep -qi "80/tcp    open" <<< "$nmap_res"; then
         echo -e "${GREEN}HTTP port is open!${NC}"
         contenum
@@ -146,8 +185,94 @@ port_service_scan() {
         echo -e "${RED}HTTP port is not open.${NC}"
     fi
 
+    if grep -qi "110/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 110
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}IMAP/POP3 port 110 is not open.${NC}"
+    fi
+
+    if grep -qi "137/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}SMB port is open! - NetBios${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 137
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}SMB port 137 is not open.${NC}"
+    fi
+
+    if grep -qi "138/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}SMB port is open! - NetBios${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 138
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}SMB port 138 is not open.${NC}"
+    fi
+
+    if grep -qi "139/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}SMB port is open! - NetBios${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 139
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}SMB port 139 is not open.${NC}"
+    fi
+
+    if grep -qi "143/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 143
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}IMAP/POP3 port 143 is not open.${NC}"
+    fi
+
+
     if grep -qi "445/tcp    open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMB port is open!${NC}"
+        echo -e "${GREEN}SMB port is open! - CIFS${NC}"
         contenum
         read op
         if [[ "$op" == "y" ]]; then
@@ -162,6 +287,75 @@ port_service_scan() {
     else
         echo -e "${RED}SMB port is not open.${NC}"
     fi
+
+    if grep -qi "587/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}SMTP port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 587
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}SMTP port 587 is not open.${NC}"
+    fi
+
+    if grep -qi "993/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 993
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}IMAP/POP3 port 993 SSL/TLS is not open.${NC}"
+    fi
+
+    if grep -qi "995/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 995
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}IMAP/POP3 port 995 SSL/TLS is not open.${NC}"
+    fi
+
+    if grep -qi "2049/tcp    open" <<< "$nmap_res"; then
+        echo -e "${GREEN}NFS port is open!${NC}"
+        contenum
+        read op
+        if [[ "$op" == "y" ]]; then
+            sudo ./autoEnum.sh "$1" tcp 2049
+        elif [[ "$op" == "n" ]]; then
+            echo -e "${CYAN}OK, bye..."
+            exit 1
+        else
+            echo "${RED}Invalid option${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}NFS port is not open.${NC}"
+    fi
+
     
     if grep -qi "3306/tcp    open" <<< "$nmap_res"; then
         echo -e "${GREEN}MySQL port is open!${NC}"
@@ -199,13 +393,9 @@ port_service_scan() {
 
 dnsenumfunc() {
     text="xxxxxxxxxxxxxxxxxxxx DNSenum xxxxxxxxxxxxxxxxxxxx"
-    padding=$(( (line_length - ${#text}) / 2 ))
-    line=$(printf "%*s%s%*s\n" $padding "" "$text" $padding "")
-    echo "$line"
+    out1
     line="dnsenum"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
-    printf "%*s\n" $(((${#line}+$line_length)/2)) "$line" >> "$resfile"
-    printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
+    out2
     dnsenum "$1" | tee -a "$resfile"
     echo -e "${GREEN}DNSenum done, results.txt for more info${NC}"
 }

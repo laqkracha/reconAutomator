@@ -12,6 +12,23 @@ NC=$(tput sgr0)
 
 line_length=$(tput cols)
 
+validate_ip() {
+    local ip=$1
+    local stat=1
+
+    if [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        if [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]; then
+            stat=0
+        fi
+    fi
+
+    return $stat
+}
+
 echo -e "${YELLOW}
 ───────────╔══╗─╔╗────────╔╗
 ╔╦╦═╦═╦═╦═╦╣╔╗╠╦╣╚╦═╦══╦═╗║╚╦═╦╦╗
@@ -26,8 +43,6 @@ echo "
 ║╔╣╩╣═╣╬║║║║╠╣║║║╔╣╬║║║║╬╚╣╔╣╬║╔╝
 ╚╝╚═╩═╩═╩╩═╩╝╚╩═╩═╩═╩╩╩╩══╩═╩═╩╝" >> $resfile
 
-
-
 if [[ $(id -u) -ne 0 ]]; then
     echo -e "${RED}This script requires root privileges. Please run with sudo.${NC}"
     exit 1
@@ -39,6 +54,10 @@ read -r ip_domain
 if [ "$ip_domain" == "i" ]; then
 	echo -e "${CYAN}IP:${NC}"
 	read -r ip
+    if ! validate_ip "$ip"; then
+        echo -e "${RED}Invalid IP address format. Please provide a valid IP address.${NC}"
+        exit 1
+    fi
 	echo -e "${CYAN}Do you want to execute whois? (y/n):${NC}"
 	read -r op
 	echo -e "${CYAN}Do you want to execute dnsenum? (y/n):${NC}"
