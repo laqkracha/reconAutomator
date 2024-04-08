@@ -43,10 +43,6 @@ out2(){
     printf '%*s\n' "$line_length" | tr ' ' '=' >> "$resfile"
 }
 
-contenum() {
-    echo -e "${CYAN}Do you want me to try the Enumeration? (y/n)"
-}
-
 hostr() {
     text="xxxxxxxxxxxxxxxxxxxx Host xxxxxxxxxxxxxxxxxxxx"
     out1
@@ -90,306 +86,48 @@ hostup() {
     fi
 }
 
-########### continue after detect an open port
+handle_port_service() {
+    local port=$1
+    local service=$2
+
+    if grep -qi "$port/tcpopen" <<< "$nmap_res"; then
+        echo -e "${GREEN}$service port is open!${NC}"
+    else
+        echo -e "${RED}$service port $port is not open.${NC}"
+    fi
+}
+
 port_service_scan() {
     text="xxxxxxxxxxxxxxxxxxxx Ports & Service Scan xxxxxxxxxxxxxxxxxxxx"
     out1
     line="Ports & Service Scan"
     out2
-    nmap_res=$(sudo nmap "$1" -sV | tail -n +4 | head -n -2)
-    echo "$nmap_res" >> "$resfile"
+    nmap_res=$(sudo nmap "$1" -sV | tail -n +4 | head -n -2 | tr -d ' ')
+    
+    numeric=$(echo "$nmap_res" | grep -o '^[0-9]\+')
+    echo "$numeric" >> "$resfile"
+    
+    #echo "$nmap_res" >> "$resfile"
     echo -e "${MAGENTA}Nmap done, remember that these results are just for common ports.${NC}"
     echo -e "${MAGENTA}For further information, check out results.txt${NC}"
 
-    if grep -qi "21/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}FTP port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh.sh "$1" tcp 21
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}FTP port is not open.${NC}"
-    fi
-
-    if grep -qi "22/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SSH port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh.sh "$1" tcp 22
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SSH port is not open.${NC}"
-    fi
-
-    if grep -qi "25/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMTP port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 25
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SMTP port 25 is not open.${NC}"
-    fi
-
-    if grep -qi "53/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}DNS port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 53
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}DNS port is not open.${NC}"
-    fi
-
-    if grep -qi "80/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}HTTP port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 80
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}HTTP port is not open.${NC}"
-    fi
-
-    if grep -qi "110/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 110
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}IMAP/POP3 port 110 is not open.${NC}"
-    fi
-
-    if grep -qi "137/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMB port is open! - NetBios${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 137
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SMB port 137 is not open.${NC}"
-    fi
-
-    if grep -qi "138/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMB port is open! - NetBios${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 138
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SMB port 138 is not open.${NC}"
-    fi
-
-    if grep -qi "139/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMB port is open! - NetBios${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 139
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SMB port 139 is not open.${NC}"
-    fi
-
-    if grep -qi "143/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 143
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}IMAP/POP3 port 143 is not open.${NC}"
-    fi
-
-
-    if grep -qi "445/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMB port is open! - CIFS${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 445
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SMB port is not open.${NC}"
-    fi
-
-    if grep -qi "587/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SMTP port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 587
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SMTP port 587 is not open.${NC}"
-    fi
-
-    if grep -qi "993/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 993
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}IMAP/POP3 port 993 SSL/TLS is not open.${NC}"
-    fi
-
-    if grep -qi "995/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}IMAP/POP3 port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 995
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}IMAP/POP3 port 995 SSL/TLS is not open.${NC}"
-    fi
-
-    if grep -qi "2049/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}NFS port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 2049
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}NFS port is not open.${NC}"
-    fi
-
-    
-    if grep -qi "3306/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}MySQL port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 3306
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}MySQL port is not open.${NC}"
-    fi
-    if grep -qi "1433/tcp open" <<< "$nmap_res"; then
-        echo -e "${GREEN}SSQL port is open!${NC}"
-        contenum
-        read op
-        if [[ "$op" == "y" ]]; then
-            sudo ./autoEnum.sh "$1" tcp 1433
-        elif [[ "$op" == "n" ]]; then
-            echo -e "${CYAN}OK, bye..."
-            exit 1
-        else
-            echo "${RED}Invalid option${NC}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}SSQL port is not open.${NC}"
-    fi
+    handle_port_service 21 "FTP"
+    handle_port_service 22 "SSH"
+    handle_port_service 25 "SMTP"
+    handle_port_service 53 "DNS"
+    handle_port_service 80 "HTTP"
+    handle_port_service 110 "IMAP/POP3"
+    handle_port_service 137 "SMB (NetBios)"
+    handle_port_service 138 "SMB (NetBios)"
+    handle_port_service 139 "SMB (NetBios)"
+    handle_port_service 143 "IMAP/POP3"
+    handle_port_service 445 "SMB (CIFS)"
+    handle_port_service 587 "SMTP"
+    handle_port_service 993 "IMAP/POP3 SSL/TLS"
+    handle_port_service 995 "IMAP/POP3 SSL/TLS"
+    handle_port_service 2049 "NFS"
+    handle_port_service 3306 "MySQL"
+    handle_port_service 1433 "SSQL"
 }
 
 dnsenumfunc() {
